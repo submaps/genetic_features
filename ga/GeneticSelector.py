@@ -2,12 +2,8 @@ import random
 import numpy as np
 import matplotlib.pyplot as plt
 
-from sklearn.datasets import load_boston
 from sklearn.model_selection import cross_val_score
-from sklearn.linear_model import LinearRegression
 
-from ga.first_ga_other import get_data
-from kriging_utils import timeit
 
 SEED = 2018
 random.seed(SEED)
@@ -103,7 +99,6 @@ class GeneticSelector:
         return population
 
     def fit(self, X, y):
-
         self.chromosomes_best = []
         self.scores_best, self.scores_avg = [], []
 
@@ -127,49 +122,3 @@ class GeneticSelector:
         plt.ylabel('Scores')
         plt.xlabel('Generation')
         plt.show()
-
-
-@timeit
-def main():
-    dataset_name = 'robc'
-    X, y = get_data(dataset_name)
-    # ==============================================================================
-    # CV MSE before feature selection
-    # ==============================================================================
-    est = LinearRegression()
-    score = -1.0 * cross_val_score(est, X, y, cv=5, scoring="neg_mean_squared_error")
-    print("CV MSE before feature selection: {:.2f}".format(np.mean(score)))
-
-    sel = GeneticSelector(estimator=LinearRegression(),
-                          n_gen=7, size=200, n_best=40, n_rand=40,
-                          n_children=5, mutation_rate=0.05)
-    sel.fit(X, y)
-    sel.plot_scores()
-    score = -1.0 * cross_val_score(est, X[:, sel.support_], y, cv=5, scoring="neg_mean_squared_error")
-    print("CV MSE after feature selection: {:.2f}".format(np.mean(score)))
-
-
-if __name__ == '__main__':
-    main()
-
-# boston
-# CV MSE before feature selection: 37.13
-# CV MSE after RFE feature selection: 33.21
-# CV MSE after Feature Importance feature selection: 35.49
-# CV MSE after Boruta feature selection: 35.49
-# 'main'  0.17 m
-# boston
-# CV MSE before feature selection: 37.13
-# CV MSE after feature selection: 28.92
-# 'main'  10.88 m
-
-# robc
-# X shape: (3263, 147)
-# CV MSE before feature selection: 503377.13
-# CV MSE after RFE feature selection: 66.75
-# CV MSE after Feature Importance feature selection: 170.58
-# CV MSE after Boruta feature selection: 69543949.36
-# 'main'  32.40 m
-# robc
-# CV MSE before feature selection: 503377.13
-# CV MSE after feature selection: 74.69
