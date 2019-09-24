@@ -15,7 +15,7 @@ np.random.seed(SEED)
 # ==============================================================================
 class GeneticSelector:
     def __init__(self, estimator, n_gen, size, n_best, n_rand,
-                 n_children, mutation_rate):
+                 n_children, mutation_rate, mode, cv):
         # Estimator
         self.estimator = estimator
         # Number of generations
@@ -30,6 +30,9 @@ class GeneticSelector:
         self.n_children = n_children
         # Probablity of chromosome mutation
         self.mutation_rate = mutation_rate
+        # regression or classification
+        self.mode = mode
+        self.cv = cv
 
         if int((self.n_best + self.n_rand) / 2) * self.n_children != self.size:
             raise ValueError("The population size is not stable.")
@@ -47,9 +50,7 @@ class GeneticSelector:
         X, y = self.dataset
         scores = []
         for chromosome in population:
-            score = -1.0 * np.mean(cross_val_score(self.estimator, X[:, chromosome], y,
-                                                   cv=5,
-                                                   scoring="neg_mean_squared_error"))
+            score = self.get_score(X, y, chromosome, self.cv)
             scores.append(score)
         scores, population = np.array(scores), np.array(population)
         inds = np.argsort(scores)
@@ -122,3 +123,15 @@ class GeneticSelector:
         plt.ylabel('Scores')
         plt.xlabel('Generation')
         plt.show()
+
+    def get_score(self, X, y, chromosome, cv=5):
+        if self.mode == 'regression':
+            return -1.0 * np.mean(cross_val_score(self.estimator, X[:, chromosome], y,
+                                           cv=cv,
+                                           scoring="neg_mean_squared_error"))
+        elif self.mode == 'classification':
+            return -1.0 * np.mean(cross_val_score(self.estimator, X[:, chromosome], y,
+                                                  cv=cv,
+                                                  scoring="f1_macro"))
+        else:
+            raise Exception('invalid mode ' + self.mode)
