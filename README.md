@@ -1,5 +1,5 @@
 # genetic
-Using simple genetic algorithm for feature selection for regression model.
+Using simple genetic algorithm for feature selection for regression and classification models.
 
 Regression on boston dataset
 ```
